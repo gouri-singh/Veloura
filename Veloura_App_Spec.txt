@@ -1,0 +1,69 @@
+Build a web app called "Veloura" — an AI-powered personal styling and shopping-aggregator platform.
+Tagline: "Wear What Truly Fits You."
+
+TECH STACK
+- Frontend: React + Tailwind CSS
+- Backend: Node.js + Express
+- Database: PostgreSQL (or SQLite for local dev)
+- Auth: Email/Mobile + OTP verification flow (mock OTP service for now — log OTP to console/UI instead of real SMS, structure the code so a real provider like Firebase/MSG91/Twilio can be swapped in later)
+
+DESIGN THEME (must follow exactly)
+- Background: deep velvet tones — Maroon (#4A0E1E), Royal Purple (#2E0F4C), Emerald Velvet (#093824) used as gradients, with a subtle fabric-grain/noise texture overlay (use an SVG noise filter, not an image, for performance)
+- Accent color: Gold/Champagne (#D4AF37) for buttons, borders, highlights
+- Headings font: serif, luxury feel (e.g. "Playfair Display")
+- Body font: clean sans-serif (e.g. "Inter")
+- Buttons: rounded corners, soft glow on hover, gold border
+- Transitions: smooth fade/slide animations, no abrupt snaps
+- Overall tone: premium, warm, personal — not corporate/flat SaaS look
+
+PAGES & FLOW
+
+1. Landing Page
+   - Full-screen velvet-gradient hero with the Veloura logo/wordmark and tagline
+   - "Login / Register" CTA button
+
+2. Auth Flow
+   - Single form: user enters mobile number OR email
+   - "Send OTP" button → shows a 6-digit OTP input screen
+   - Mock-verify the OTP (accept any 6-digit code in dev mode, or display the generated code on screen for testing)
+   - On success, create session (JWT) and redirect to Onboarding if new user, else Home Feed
+
+3. Onboarding (first-time users only)
+   - Collect: height, weight, skin tone (color-swatch picker), optional body shape selector
+   - Optional: upload a selfie (store but do not process yet — leave a TODO comment for future skin-tone detection AI)
+   - Save profile → redirect to Home Feed
+
+4. Home Feed
+   - Grid of clickable product cards (image, title, price, source platform badge e.g. "Flipkart", "Amazon")
+   - Use a static/demo JSON dataset of ~20-30 sample clothing items across categories (top/bottom/ethnic/western), each tagged with platform name, price, color, and a placeholder "Buy Now" link
+   - Default sort: Price Low → High
+   - Filters: category, price range, color, size
+   - Each card has a "Buy Now" button that opens the product's external link (use placeholder URLs, structured so real affiliate deep links can be swapped in later)
+
+5. AI Style Suggestions Section
+   - Based on the user's onboarding profile (height/weight/skin tone), show a filtered/reordered subset of the demo catalog as "Recommended for You"
+   - Implement this as a simple rules-based scoring function in the backend (e.g., map skin tone to a set of "flattering colors", map body shape to "flattering fits") — no ML model needed yet, just clearly structured logic that can be upgraded later
+   - Sort recommendations by price (lowest first)
+
+6. Wardrobe Matcher ("Combo Finder") page
+   - Let user upload a photo of a clothing item they own
+   - For now, do NOT do real image recognition — instead, let the user manually tag the uploaded item (category + color) via a simple form after upload
+   - Based on that tag, show matching items from the demo catalog (e.g., uploaded "blue top" → show bottom-wear suggestions), sorted by price
+   - Leave a clear code comment marking where a real computer-vision/image-tagging model would be integrated later
+
+7. Help / Support
+   - Floating chat bubble (bottom-right corner) that opens a simple AI-assistant chat UI (can be a basic canned-response bot for now, structured so a real LLM API can be plugged in later)
+   - Inside the chat widget, include a "Chat with us on WhatsApp" button that opens https://wa.me/919911828497 in a new tab
+
+8. Feedback
+   - After a "Buy Now" click or after viewing AI suggestions, show a simple feedback prompt: 1-5 star rating + optional text comment
+   - Store feedback entries in the database with a timestamp and (if available) user ID
+
+NON-FUNCTIONAL REQUIREMENTS
+- Product feed should load from cached/local data, not simulate a live network fetch
+- OTP codes should expire after 5 minutes (simulate this with a timestamp check even in mock mode)
+- All user-uploaded photos should be stored with an explicit note/comment that in production this requires user consent + a deletion option
+- Code should be clearly organized into modules so each "TODO: integrate real X" (SMS provider, Flipkart Affiliate API, image recognition, LLM chat) can be swapped in independently later
+
+DELIVERABLE
+Build this as a working, navigable multi-page app with the full flow above using demo/mock data end-to-end (no real third-party API keys needed to run it locally). Clearly comment every place where a real external integration (OTP provider, shopping platform API, computer vision, LLM) is expected to replace the current mock/demo logic.
