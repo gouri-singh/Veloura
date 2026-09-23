@@ -48,7 +48,7 @@ export default function ChatWidget() {
           {/* WhatsApp Link */}
           <div className="p-2 text-center border-t border-white/10 bg-black/20">
             <a 
-              href="https://wa.me/919911828497" 
+              href="https://wa.me/919118284974" 
               target="_blank" 
               rel="noopener noreferrer"
               className="text-xs text-green-400 hover:text-green-300 underline"

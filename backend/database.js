@@ -13,12 +13,22 @@ const db = new sqlite3.Database(dbPath, (err) => {
         db.run(`CREATE TABLE IF NOT EXISTS Users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             contact TEXT UNIQUE,
+            password TEXT,
             height TEXT,
             weight TEXT,
             skinTone TEXT,
             bodyShape TEXT,
             createdAt DATETIME DEFAULT CURRENT_TIMESTAMP
-        )`);
+        )`, () => {
+            // Migration: Add password column to existing databases
+            db.run(`ALTER TABLE Users ADD COLUMN password TEXT`, (err) => {
+                if (!err) console.log('Added password column to Users table');
+            });
+            // Migration: Add name column
+            db.run(`ALTER TABLE Users ADD COLUMN name TEXT`, (err) => {
+                if (!err) console.log('Added name column to Users table');
+            });
+        });
 
         db.run(`CREATE TABLE IF NOT EXISTS Otps (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -39,10 +39,23 @@ router.post('/onboarding', authenticateToken, (req, res) => {
 // GET /api/user/profile
 router.get('/profile', authenticateToken, (req, res) => {
     const userId = req.user.userId;
-    db.get(`SELECT id, contact, height, weight, skinTone, bodyShape FROM Users WHERE id = ?`, [userId], (err, user) => {
+    db.get(`SELECT id, contact, name, height, weight, skinTone, bodyShape FROM Users WHERE id = ?`, [userId], (err, user) => {
         if (err) return res.status(500).json({ error: 'Database error' });
         if (!user) return res.status(404).json({ error: 'User not found' });
         res.json(user);
+    });
+});
+
+// PUT /api/user/profile - update display name
+router.put('/profile', authenticateToken, (req, res) => {
+    const userId = req.user.userId;
+    const { name } = req.body;
+    if (!name || name.trim() === '') {
+        return res.status(400).json({ error: 'Name cannot be empty' });
+    }
+    db.run(`UPDATE Users SET name = ? WHERE id = ?`, [name.trim(), userId], function(err) {
+        if (err) return res.status(500).json({ error: 'Database error' });
+        res.json({ message: 'Profile updated', name: name.trim() });
     });
 });
 

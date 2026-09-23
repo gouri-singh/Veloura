@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useContext } from 'react';
+import { userApi } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -7,24 +8,25 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('veloura_token'));
   const [loading, setLoading] = useState(true);
 
+  const fetchProfile = async () => {
+    try {
+      const profile = await userApi.getProfile();
+      if (profile && !profile.error) {
+        setUser(profile);
+      } else {
+        logout();
+      }
+    } catch (err) {
+      console.warn('Failed to fetch user profile:', err);
+      // Keep session if local user data exists or logout if unauthorized
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (token) {
-      // In a real app, verify token and fetch user profile
-      fetch('http://localhost:3001/api/user/profile', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (!data.error) {
-          setUser(data);
-        } else {
-          logout();
-        }
-      })
-      .catch(() => logout())
-      .finally(() => setLoading(false));
+      fetchProfile();
     } else {
       setLoading(false);
     }
@@ -34,6 +36,7 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('veloura_token', newToken);
     setToken(newToken);
     setUser(userData);
+    fetchProfile();
   };
 
   const logout = () => {
@@ -42,8 +45,12 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const refreshProfile = async () => {
+    await fetchProfile();
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout, setUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, setUser, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );

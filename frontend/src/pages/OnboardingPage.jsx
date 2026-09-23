@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { userApi } from '../services/api';
 
 const SKIN_TONES = [
   { id: 'fair', color: '#FAD6B1', label: 'Fair' },
@@ -21,27 +22,17 @@ export default function OnboardingPage() {
   });
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
-  const { token, setUser, user } = useAuth();
+  const { refreshProfile } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const res = await fetch('http://localhost:3001/api/user/onboarding', {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(formData)
-      });
-      
-      if (res.ok) {
-        setUser({ ...user, ...formData });
-        navigate('/home');
-      }
+      await userApi.submitOnboarding(formData);
+      await refreshProfile();
+      navigate('/home');
     } catch (err) {
-      console.error(err);
+      console.error('Onboarding submission error:', err);
     }
     setLoading(false);
   };
@@ -108,14 +99,6 @@ export default function OnboardingPage() {
             </select>
           </div>
 
-          {/* TODO: Add selfie upload for skin tone detection AI */}
-          <div className="border border-dashed border-white/20 rounded-lg p-6 text-center bg-white/5">
-            <p className="text-sm text-gray-400 mb-2">Want better recommendations?</p>
-            <button type="button" className="btn-outline-gold py-2 px-4 text-sm" onClick={() => alert("Selfie upload will be available in v2 with AI skin tone detection!")}>
-              Upload a Selfie
-            </button>
-            <p className="text-xs text-gray-500 mt-2">Note: Photos are securely stored and you can delete them anytime.</p>
-          </div>
 
           <button type="submit" disabled={loading} className="w-full btn-gold mt-4">
             {loading ? 'Saving...' : 'Save Profile & Continue'}

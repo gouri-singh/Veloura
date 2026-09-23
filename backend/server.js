@@ -12,10 +12,16 @@ app.use(express.json());
 const authRoutes = require('./routes/auth');
 const userRoutes = require('./routes/user');
 const feedbackRoutes = require('./routes/feedback');
+const productsRoutes = require('./routes/products');
+const recommendationsRoutes = require('./routes/recommendations');
+const wardrobeRoutes = require('./routes/wardrobe');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/feedback', feedbackRoutes);
+app.use('/api/products', productsRoutes);
+app.use('/api/recommendations', recommendationsRoutes);
+app.use('/api/wardrobe', wardrobeRoutes);
 
 // Health check
 app.get('/api/health', (req, res) => {

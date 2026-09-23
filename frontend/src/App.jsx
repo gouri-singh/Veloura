@@ -5,6 +5,11 @@ import AuthPage from './pages/AuthPage';
 import OnboardingPage from './pages/OnboardingPage';
 import HomePage from './pages/HomePage';
 import WardrobeMatcherPage from './pages/WardrobeMatcherPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+import MyOrdersPage from './pages/MyOrdersPage';
+import AccountPage from './pages/AccountPage';
+import SettingsPage from './pages/SettingsPage';
 import { useAuth } from './context/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
@@ -23,6 +28,11 @@ function App() {
         <Route path="onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
         <Route path="home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
         <Route path="wardrobe-matcher" element={<ProtectedRoute><WardrobeMatcherPage /></ProtectedRoute>} />
+        <Route path="cart" element={<ProtectedRoute><CartPage /></ProtectedRoute>} />
+        <Route path="checkout" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
+        <Route path="orders" element={<ProtectedRoute><MyOrdersPage /></ProtectedRoute>} />
+        <Route path="account" element={<ProtectedRoute><AccountPage /></ProtectedRoute>} />
+        <Route path="settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
       </Route>
     </Routes>
   );

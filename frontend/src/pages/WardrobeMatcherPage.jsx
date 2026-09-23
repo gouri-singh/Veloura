@@ -1,7 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import ProductCard from '../components/ProductCard';
-import { products } from '../data/products';
-import { Upload, Tag, RefreshCw } from 'lucide-react';
+import { Upload, Tag, RefreshCw, Sparkles } from 'lucide-react';
+import { wardrobeApi } from '../services/api';
 
 export default function WardrobeMatcherPage() {
   const [imageUploaded, setImageUploaded] = useState(false);
@@ -9,6 +9,8 @@ export default function WardrobeMatcherPage() {
   const [tagCategory, setTagCategory] = useState('');
   const [tagColor, setTagColor] = useState('');
   const [showMatches, setShowMatches] = useState(false);
+  const [matchingProducts, setMatchingProducts] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -18,15 +20,29 @@ export default function WardrobeMatcherPage() {
         setUploadedImagePreview(reader.result);
         setImageUploaded(true);
         setShowMatches(false);
+        setMatchingProducts([]);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleFindMatches = (e) => {
+  const handleFindMatches = async (e) => {
     e.preventDefault();
     if (tagCategory && tagColor) {
-      setShowMatches(true);
+      setLoading(true);
+      try {
+        const response = await wardrobeApi.matchCombo({
+          category: tagCategory,
+          color: tagColor,
+          image: uploadedImagePreview
+        });
+        setMatchingProducts(response.matches || []);
+        setShowMatches(true);
+      } catch (err) {
+        console.error('Error matching wardrobe combo:', err);
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -36,32 +52,15 @@ export default function WardrobeMatcherPage() {
     setTagCategory('');
     setTagColor('');
     setShowMatches(false);
+    setMatchingProducts([]);
   };
-
-  const matchingProducts = useMemo(() => {
-    if (!showMatches) return [];
-    
-    // Logic: If user uploads a top, show bottoms. If bottom, show tops.
-    let targetCategory = '';
-    if (tagCategory === 'top') targetCategory = 'bottom';
-    if (tagCategory === 'bottom') targetCategory = 'top';
-    if (tagCategory === 'ethnic' || tagCategory === 'western') {
-        // Just show same category accessories or complimentary items, for mock we just show same category
-        targetCategory = tagCategory; 
-    }
-
-    return products
-      .filter(p => targetCategory ? p.category === targetCategory : true)
-      // Sort by price
-      .sort((a, b) => a.price - b.price);
-  }, [showMatches, tagCategory]);
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="text-center mb-10">
         <h1 className="text-4xl font-serif text-white mb-3">Wardrobe Matcher</h1>
         <p className="text-gray-400 max-w-2xl mx-auto">
-          Upload an item you own, and we'll find the perfect pieces to complete your outfit.
+          Upload an item you own, tag its category and color, and our AI matcher will curate perfect style combinations from our catalog.
         </p>
       </div>
 
@@ -81,8 +80,8 @@ export default function WardrobeMatcherPage() {
                   className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
                 />
                 <Upload size={40} className="text-gray-500 mb-4" />
-                <p className="text-sm text-gray-300 font-medium">Click or drag to upload</p>
-                <p className="text-xs text-gray-500 mt-2 text-center">In production, this photo is processed securely and requires consent.</p>
+                <p className="text-sm text-gray-300 font-medium">Click or drag to upload photo</p>
+                <p className="text-xs text-gray-500 mt-2 text-center">In production, user upload requires consent + deletion option (TODO: Image Recognition AI module).</p>
               </div>
             ) : (
               <div className="flex flex-col flex-grow">
@@ -98,43 +97,42 @@ export default function WardrobeMatcherPage() {
                 </div>
 
                 <form onSubmit={handleFindMatches} className="space-y-4 mt-auto">
-                  {/* TODO: Integrate real image recognition here instead of manual tagging */}
-                  <div className="bg-blue-900/20 border border-blue-500/30 p-3 rounded text-xs text-blue-200 mb-4">
-                    <span className="font-bold">Developer Note:</span> Manual tagging is used for MVP. In the future, a CV model will auto-tag this image.
-                  </div>
-
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1 flex items-center gap-2">
-                      <Tag size={14} /> Item Category
+                    <label className="block text-xs font-medium text-gray-300 mb-1 flex items-center gap-1">
+                      <Tag size={12} /> Category
                     </label>
-                    <select 
+                    <select
                       required
                       value={tagCategory}
                       onChange={(e) => setTagCategory(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-gold-champagne text-sm"
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-champagne"
                     >
-                      <option value="" className="bg-gray-900">Select...</option>
-                      <option value="top" className="bg-gray-900">Top (Shirt, T-Shirt)</option>
-                      <option value="bottom" className="bg-gray-900">Bottom (Pants, Skirt)</option>
+                      <option value="" className="bg-gray-900">Select Category</option>
+                      <option value="top" className="bg-gray-900">Top / Shirt / Sweater</option>
+                      <option value="bottom" className="bg-gray-900">Bottom / Jeans / Trousers</option>
                       <option value="ethnic" className="bg-gray-900">Ethnic Wear</option>
-                      <option value="western" className="bg-gray-900">Western Dress</option>
+                      <option value="western" className="bg-gray-900">Western Wear</option>
                     </select>
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-gray-300 mb-1">Primary Color</label>
-                    <input 
-                      type="text" 
+                    <label className="block text-xs font-medium text-gray-300 mb-1">Color</label>
+                    <select
                       required
                       value={tagColor}
                       onChange={(e) => setTagColor(e.target.value)}
-                      placeholder="e.g. Blue, Red"
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-gold-champagne text-sm"
-                    />
+                      className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-gold-champagne"
+                    >
+                      <option value="" className="bg-gray-900">Select Color</option>
+                      {['Blue', 'White', 'Black', 'Red', 'Green', 'Yellow', 'Pink', 'Purple', 'Brown', 'Olive', 'Burgundy', 'Teal', 'Gold', 'Silver', 'Peach', 'Beige'].map(color => (
+                        <option key={color} value={color} className="bg-gray-900">{color}</option>
+                      ))}
+                    </select>
                   </div>
 
-                  <button type="submit" className="w-full btn-gold py-2.5 mt-2">
-                    Find Matches
+                  <button type="submit" disabled={loading} className="w-full btn-gold text-sm flex items-center justify-center gap-2">
+                    {loading ? <RefreshCw size={16} className="animate-spin" /> : <Sparkles size={16} />}
+                    {loading ? 'Finding Combinations...' : 'Find Matching Outfits'}
                   </button>
                 </form>
               </div>
@@ -143,24 +141,34 @@ export default function WardrobeMatcherPage() {
         </div>
 
         <div className="lg:col-span-2">
-          {showMatches ? (
+          {!showMatches ? (
+            <div className="glass-panel p-12 h-full flex flex-col items-center justify-center text-center">
+              <Sparkles size={48} className="text-gold-champagne/40 mb-4" />
+              <h3 className="text-xl font-serif text-white mb-2">Upload & Tag to View Combos</h3>
+              <p className="text-gray-400 max-w-md">
+                Upload your garment on the left, tag its category & color, and click "Find Matching Outfits" to see live recommendations sorted by price.
+              </p>
+            </div>
+          ) : (
             <div>
-              <h3 className="text-2xl font-serif text-white mb-6">Suggested Pairings</h3>
-              {matchingProducts.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
-                  {matchingProducts.slice(0, 4).map(product => (
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-2xl font-serif text-white">Suggested Matchings</h3>
+                <span className="text-xs text-gold-champagne bg-gold-champagne/10 px-3 py-1 rounded-full border border-gold-champagne/20">
+                  Sorted Price: Low → High
+                </span>
+              </div>
+
+              {matchingProducts.length === 0 ? (
+                <div className="glass-panel p-8 text-center text-gray-400">
+                  No direct combinations found for this color/category pair. Try choosing a different tag!
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                  {matchingProducts.map(product => (
                     <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
-              ) : (
-                <div className="glass-panel p-10 text-center text-gray-400">
-                  No matching items found in the demo catalog.
-                </div>
               )}
-            </div>
-          ) : (
-            <div className="h-full border-2 border-dashed border-white/10 rounded-2xl flex items-center justify-center text-gray-500 p-10 text-center">
-              Upload an image and tag it to see matching suggestions here.
             </div>
           )}
         </div>

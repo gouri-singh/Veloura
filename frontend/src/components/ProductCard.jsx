@@ -1,37 +1,32 @@
 import { useState } from 'react';
-import { Star } from 'lucide-react';
+import { Star, CheckCircle } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import { playPop } from '../utils/sounds';
+import { feedbackApi } from '../services/api';
 
 export default function ProductCard({ product }) {
+  const { addToCart } = useCart();
   const [showFeedback, setShowFeedback] = useState(false);
+  const [added, setAdded] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   const handleBuyClick = () => {
-    // In production, this would use a real affiliate link
-    window.open(product.link || '#', '_blank');
-    // Show feedback prompt after 2 seconds
-    setTimeout(() => {
-      setShowFeedback(true);
-    }, 2000);
+    addToCart(product);
+    playPop();
+    setAdded(true);
+    setTimeout(() => setAdded(false), 2000);
   };
 
   const submitFeedback = async () => {
     if (rating === 0) return;
     
     try {
-      const token = localStorage.getItem('veloura_token');
-      await fetch('http://localhost:3001/api/feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token && { 'Authorization': `Bearer ${token}` })
-        },
-        body: JSON.stringify({
-          productId: product.id,
-          rating,
-          comment
-        })
+      await feedbackApi.submitFeedback({
+        productId: product.id,
+        rating,
+        comment
       });
       setFeedbackSubmitted(true);
       setTimeout(() => setShowFeedback(false), 2000);
@@ -39,16 +34,11 @@ export default function ProductCard({ product }) {
       console.error("Failed to submit feedback", err);
     }
   };
-
   return (
     <div className="glass-panel overflow-hidden flex flex-col group hover:-translate-y-1 transition-transform duration-300">
-      <div className="relative h-64 overflow-hidden">
-        <img 
-          src={product.image} 
-          alt={product.title} 
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-        />
-        <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-md px-2 py-1 rounded text-xs font-semibold text-gold-champagne border border-gold-champagne/30">
+      <div className="p-4 bg-white/5 border-b border-white/10 flex justify-between items-center">
+        <span className="text-xs uppercase tracking-wider text-gray-400 font-semibold">{product.category}</span>
+        <div className="bg-black/60 backdrop-blur-md px-2.5 py-1 rounded text-xs font-semibold text-gold-champagne border border-gold-champagne/30">
           {product.platform}
         </div>
       </div>
@@ -57,7 +47,9 @@ export default function ProductCard({ product }) {
         <p className="text-gray-400 text-sm mb-4 capitalize">{product.category} • {product.color}</p>
         <div className="mt-auto flex justify-between items-center">
           <span className="text-xl font-bold text-gold-champagne">₹{product.price}</span>
-          <button onClick={handleBuyClick} className="btn-gold py-2 px-4 text-sm">Buy Now</button>
+          <button onClick={handleBuyClick} disabled={added} className={`py-2 px-4 text-sm transition-all duration-300 flex items-center justify-center ${added ? 'bg-green-500/20 text-green-400 rounded-lg border border-green-500/50' : 'btn-gold'}`}>
+            {added ? <span className="flex items-center gap-1"><CheckCircle size={16} /> Added</span> : 'Add to Cart'}
+          </button>
         </div>
       </div>
 
