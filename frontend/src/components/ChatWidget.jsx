@@ -23,7 +23,7 @@ export default function ChatWidget() {
   };
 
   return (
-    <div className="fixed bottom-6 right-6 z-50">
+    <div className="fixed bottom-6 right-6 z-[2147483647]">
       {isOpen && (
         <div className="mb-4 w-80 h-96 glass-panel flex flex-col overflow-hidden">
           {/* Header */}
@@ -85,3 +85,4 @@ export default function ChatWidget() {
     </div>
   );
 }
+

@@ -43,7 +43,7 @@ export default function Layout() {
   return (
     <div className="velvet-bg min-h-screen text-gray-100 flex flex-col">
       {!isFrontCover && (
-        <nav className="velvet-content border-b border-white/10 glass-panel rounded-none">
+        <nav className="velvet-content relative z-[999999] border-b border-white/10 glass-panel rounded-none">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16 items-center">
 
@@ -75,7 +75,7 @@ export default function Layout() {
                     </Link>
 
                     {/* User Dropdown */}
-                    <div className="relative z-50" ref={dropdownRef}>
+                    <div className="relative z-[9999]" ref={dropdownRef}>
                       <button
                         type="button"
                         onClick={() => setDropdownOpen(prev => !prev)}
@@ -88,7 +88,7 @@ export default function Layout() {
                       </button>
 
                       {dropdownOpen && (
-                        <div className="absolute right-0 mt-2 w-52 glass-panel border border-white/15 rounded-xl shadow-2xl z-50 overflow-hidden backdrop-blur-xl bg-black/80">
+                        <div className="fixed right-4 top-[4.5rem] w-52 glass-panel border border-white/15 rounded-xl shadow-2xl z-[2147483647] overflow-hidden backdrop-blur-xl bg-black/80">
                           <div className="px-4 py-3 border-b border-white/10 bg-white/5">
                             <p className="text-white text-sm font-medium truncate">{user?.name || 'Veloura User'}</p>
                             <p className="text-gold-champagne/80 text-xs truncate mt-0.5">{user?.contact}</p>
@@ -145,3 +145,11 @@ export default function Layout() {
     </div>
   );
 }
+
+
+
+
+
+
+
+

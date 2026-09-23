@@ -55,10 +55,7 @@
   z-index: 0;
 }
 
-.velvet-content {
-  position: relative;
-  z-index: 10;
-}
+.velvet-content { position: relative; z-index: 9999; }
 
 @layer components {
   .btn-gold {
